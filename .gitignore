@@ -4,7 +4,7 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-/src/main/rosources/application.properties
+/src/main/rosources/
 
 ### STS ###
 .apt_generated
