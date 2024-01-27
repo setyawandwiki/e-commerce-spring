@@ -83,6 +83,37 @@ public class ProductServiceImpl implements ProductService{
     }
 
     @Override
+    public Page<ProductResponse> getProductSeller(int page, int size) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found"));
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Product> productPage = productRepository.findByUserEmail(user.getEmail(), pageable);
+
+        List<ProductResponse> productResponses = productPage.getContent().stream().map(product -> ProductResponse.builder()
+                .createdAt(product.getCreatedAt())
+                .name(product.getName())
+                .category(product.getCategory())
+                .details(product.getDetails())
+                .id(product.getId())
+                .image1(product.getImage1())
+                .image2(product.getImage2())
+                .image3(product.getImage3())
+                .price(product.getPrice())
+                .rate(product.getRate())
+                .title(product.getTitle())
+                .orderItems(product.getOrderItems())
+                .quantity(product.getQuantity())
+                .updatedAt(product.getUpdatedAt())
+                .user(product.getUser())
+                .wishLists(product.getWishLists())
+                .createdAt(product.getCreatedAt())
+                .build()).collect(Collectors.toList());
+
+        return new PageImpl<>(productResponses, pageable, productPage.getTotalElements());
+    }
+
+    @Override
     public ProductResponse create(ProductRequest request) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found"));
@@ -161,11 +192,16 @@ public class ProductServiceImpl implements ProductService{
 
     @Override
     public UpdateProductResponse updateProduct(Long id, ProductRequest request) {
+        System.out.println("\n\n\n\nTESTING" + request.getTitle() + " " + request.getPrice());
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         Product product = productRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "product not found"));
         Category category = categoryRepository.findByName(request.getCategory()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "category not found"));
         if(!email.equals(product.getUser().getEmail())){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "you are not allowed to do this action");
+        }
+        System.out.println("service\n\n\n" + request.getTitle());
+        if(Objects.nonNull(request.getTitle())){
+            product.setTitle(request.getTitle());
         }
         if(Objects.nonNull(request.getName())){
             product.setName(request.getName());
@@ -201,7 +237,6 @@ public class ProductServiceImpl implements ProductService{
                 String imagePath = FOLDER_PATH + File.separator + uniqueFileName;
                 product.setImage1(uniqueFileName);
                 try {
-                    System.out.println("test1");
                     request.getImage1().transferTo(new File(imagePath));
                 } catch (IOException e) {
                     throw new RuntimeException(e);
@@ -210,9 +245,7 @@ public class ProductServiceImpl implements ProductService{
         }
 
         if(Objects.nonNull(request.getImage2())) {
-            System.out.println("\n\n\n\ntest21");
             if (request.getImage2().getOriginalFilename().length() == 0) {
-                System.out.println("" + "test2");
                 File existingImage = new File(FOLDER_PATH + File.separator + product.getImage2());
                 if (existingImage.exists()) {
                     existingImage.delete();
@@ -256,7 +289,6 @@ public class ProductServiceImpl implements ProductService{
                 };
             }
         }
-
         if(Objects.nonNull(request.getImage3())) {
             if (request.getImage3().getOriginalFilename().length() == 0) {
                 File existingImage = new File(FOLDER_PATH + File.separator + product.getImage3());
@@ -314,6 +346,7 @@ public class ProductServiceImpl implements ProductService{
         return UpdateProductResponse.builder()
                 .createdAt(product.getCreatedAt())
                 .name(product.getName())
+                .title(product.getTitle())
                 .category(product.getCategory())
                 .details(product.getDetails())
                 .id(product.getId())

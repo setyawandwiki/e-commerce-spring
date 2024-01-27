@@ -70,7 +70,7 @@ public class OrderServiceImpl implements OrderService{
                     orderItemRepository.save(orderItem);
                 }
             });
-            MidtransResponse snapTransaction = midtransService.createSnapTransaction(total, allOrderItem);
+            MidtransResponse snapTransaction = midtransService.createSnapTransaction(total + 29000, allOrderItem);
             orderRepository.save(order);
             isREaadyToOrder = false;
             total = 0.0;

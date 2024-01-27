@@ -2,6 +2,7 @@ package com.setyawandwiki.ecommerce.config;
 
 import com.setyawandwiki.ecommerce.entity.Role;
 import com.setyawandwiki.ecommerce.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +18,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+
+import java.util.Collection;
+import java.util.Collections;
 
 @Configuration
 @RequiredArgsConstructor
@@ -26,7 +32,18 @@ public class SecurityConfig {
     private final UserService userService;
     @Bean
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf->csrf.disable());
+        http.cors().configurationSource(new CorsConfigurationSource() {
+            @Override
+            public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+                CorsConfiguration config = new CorsConfiguration();
+                config.setAllowedOrigins(Collections.singletonList("http://localhost:5173"));
+                config.setAllowedMethods(Collections.singletonList("*"));
+                config.setAllowCredentials(true);
+                config.setAllowedHeaders(Collections.singletonList("*"));
+                config.setMaxAge(3600L);
+                return config;
+            }
+        }).and().csrf(csrf->csrf.disable());
         http.authorizeHttpRequests((requests) -> {
             requests.requestMatchers("/api/v1/auth/**").permitAll()
                     .requestMatchers("/api/v1/address/**").authenticated()

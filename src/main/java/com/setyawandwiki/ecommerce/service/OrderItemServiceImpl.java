@@ -18,6 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -68,17 +69,53 @@ public class OrderItemServiceImpl implements OrderItemService{
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found"));
         Product product = productRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
-        OrderItem orderItem = new OrderItem();
-        orderItem.setQuantity(1);
-        orderItem.setPrice(product.getPrice());
-        orderItem.setUser(user);
-        orderItem.setProduct(product);
-        orderItem.setStatus("process");
-        orderItemRepository.save(orderItem);
+        List<OrderItemResponse> existingOrderItems = getAllOrderItem();
+        Optional<OrderItemResponse> existingOrderItem = existingOrderItems.stream()
+                .filter(item -> item.getProduct().getId().equals(id))
+                .findFirst();
+        if(existingOrderItem.isPresent()){
+            List<OrderItem> orderItems = orderItemRepository.findByUserEmail(email);
+            Long orderItemId = orderItems.stream()
+                    .filter(orderItem -> orderItem.getProduct().getId().equals(id))
+                    .map(OrderItem::getId)
+                    .findFirst().get();
+            OrderItem orderItem = orderItemRepository.findById(orderItemId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "order item not found"));
+            orderItem.setQuantity(orderItem.getQuantity() + 1 );
+            OrderItem orderItem1 = orderItemRepository.save(orderItem);
+            return OrderItemResponse.builder()
+                    .id(orderItem1.getId())
+                    .product(orderItem1.getProduct())
+                    .quantity(orderItem1.getQuantity())
+                    .price(orderItem1.getPrice())
+                    .updatedAt(new Date(System.currentTimeMillis()))
+                    .build();
+        }else{
+            OrderItem orderItem = new OrderItem();
+            orderItem.setQuantity(1);
+            orderItem.setPrice(product.getPrice());
+            orderItem.setUser(user);
+            orderItem.setProduct(product);
+            orderItem.setStatus("process");
+            orderItemRepository.save(orderItem);
+            return OrderItemResponse.builder()
+                    .quantity(orderItem.getQuantity())
+                    .price(orderItem.getPrice())
+                    .product(orderItem.getProduct())
+                    .build();
+        }
+    }
+
+    @Override
+    public OrderItemResponse iterateOrderItem(Long id) {
+        OrderItem orderItem = orderItemRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "order item not found"));
+        orderItem.setQuantity( 1 );
+        OrderItem orderItem1 = orderItemRepository.save(orderItem);
         return OrderItemResponse.builder()
-                .quantity(orderItem.getQuantity())
-                .price(orderItem.getPrice())
-                .product(orderItem.getProduct())
+                .id(orderItem1.getId())
+                .product(orderItem1.getProduct())
+                .quantity(orderItem1.getQuantity())
+                .price(orderItem1.getPrice())
+                .updatedAt(new Date(System.currentTimeMillis()))
                 .build();
     }
 

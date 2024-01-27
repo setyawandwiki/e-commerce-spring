@@ -26,17 +26,17 @@ public class CategoryController {
         CategoryResponse category = categoryService.createCategory(request);
         return ResponseEntity.ok().body(WebResponse.<CategoryResponse>builder().data(category).build());
     }
-    @GetMapping(path = "/category/{id}")
+    @GetMapping(path = "/{id}")
     public ResponseEntity<WebResponse<CategoryResponse>> categoryById(@PathVariable("id") Long id){
         CategoryResponse categoryById = categoryService.getCategoryById(id);
         return ResponseEntity.ok().body(WebResponse.<CategoryResponse>builder().data(categoryById).build());
     }
-    @PatchMapping(path = "/category/{id}")
+    @PatchMapping(path = "/{id}")
     public ResponseEntity<WebResponse<CategoryResponse>> updateCategory(@RequestBody CategoryRequest request, @PathVariable Long id){
         CategoryResponse categoryResponse = categoryService.updateCategory(request, id);
         return ResponseEntity.ok().body(WebResponse.<CategoryResponse>builder().data(categoryResponse).build());
     }
-    @DeleteMapping(path = "/category/{id}")
+    @DeleteMapping(path = "/{id}")
     public ResponseEntity<WebResponse<String>> deleteCategory(@PathVariable("id") Long id){
         categoryService.deleteCategory(id);
         return ResponseEntity.ok().body(WebResponse.<String>builder().data("success delete category").build());

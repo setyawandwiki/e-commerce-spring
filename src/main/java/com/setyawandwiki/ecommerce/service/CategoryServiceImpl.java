@@ -25,6 +25,7 @@ public class CategoryServiceImpl implements CategoryService{
     public CategoryResponse getCategoryById(Long id) {
         Category category = categoryRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "category not found"));
         return CategoryResponse.builder()
+                .id(category.getId())
                 .name(category.getName())
                 .build();
     }

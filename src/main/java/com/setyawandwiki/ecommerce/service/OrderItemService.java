@@ -9,6 +9,7 @@ public interface OrderItemService {
     List<OrderItemResponse> getAllOrderItem();
     List<OrderItemResponse> getAllOrderItemUser();
     OrderItemResponse addOrderItem(Long id);
+    OrderItemResponse iterateOrderItem(Long id);
     OrderItemResponse updateOrderItem(OrderItemUpdateRequest request, Long id);
     void deleteOrderItem(Long id);
 }

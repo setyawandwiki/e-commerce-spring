@@ -15,6 +15,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class WishListServiceImpl implements WishListService{
@@ -30,8 +34,6 @@ public class WishListServiceImpl implements WishListService{
         wishList.setUser(user);
         wishList.setProduct(product);
         wishListRepository.save(wishList);
-        System.out.println("\n\n\n\n\n");
-        System.out.println(wishList.getId());
         return WishListResponse.builder()
                 .id(wishList.getId())
                 .createdAt(wishList.getCreatedAt())
@@ -41,6 +43,34 @@ public class WishListServiceImpl implements WishListService{
                 .build();
     }
 
+    @Override
+    public List<WishListResponse> getAllWishList() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        List<WishList> byUserEmail = wishListRepository.findByUserEmail(email);
+        List<WishListResponse> wishListResponses = byUserEmail.stream().map(wishList -> WishListResponse.builder()
+                .id(wishList.getId())
+                .createdAt(wishList.getCreatedAt())
+                .updatedAt(wishList.getUpdatedAt())
+                .product(wishList.getProduct())
+                .user(wishList.getUser())
+                .build()).collect(Collectors.toList());
+
+        return wishListResponses;
+    }
+
+    @Override
+    public WishListResponse getWishListById(Long id) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        List<WishList> byUserEmail = wishListRepository.findByUserEmail(email);
+        WishList wishList = byUserEmail.stream().filter(elem -> elem.getProduct().getId().equals(id)).findFirst().orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "not found"));
+        return WishListResponse.builder()
+                .id(wishList.getId())
+                .createdAt(wishList.getCreatedAt())
+                .updatedAt(wishList.getUpdatedAt())
+                .product(wishList.getProduct())
+                .user(wishList.getUser())
+                .build();
+    }
     @Override
     public void deleteWishList(Long id) {
         WishList wishList = wishListRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "wishlist not found"));

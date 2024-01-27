@@ -25,6 +25,7 @@ public class UserResponse {
     private String lastName;
     private Gender gender;
     private String birthDate;
+    private Role role;
     private Wallet wallet;
     private List<Address> addresses;
     private List<Order> orders;
